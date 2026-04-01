@@ -1,5 +1,7 @@
+import json
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 from .decorators import editor_required
@@ -51,17 +53,50 @@ def reset_theme(request):
 
 
 # Endpoint callback dari Google
-@psa('social:complete')
+import json
+from django.http import JsonResponse
+from django.contrib.auth import login
+from django.apps import apps
+from django.urls import reverse
+from social_django.utils import psa
+from django.views.decorators.csrf import csrf_exempt
+import requests # Pastikan sudah pip install requests
+from django.contrib.auth import get_user_model # <--- Tambahkan baris ini!
+
+User = get_user_model()
+
+@csrf_exempt
 def google_login(request):
-    # token dari front-end (Google One Tap / button)
-    token = request.POST.get('credential')
-    if token:
+    if request.method == 'POST':
         try:
-            # authenticate user dengan token
-            user = request.backend.do_auth(token)
-            if user:
-                login(request, user)
-                return redirect('dashboard')
+            data = json.loads(request.body)
+            token = data.get('credential')
+            
+            # Verifikasi token ke Google API secara manual
+            # Ini lebih aman dibanding nunggu social-auth yang konfigurasinya banyak
+            google_res = requests.get(f'https://oauth2.googleapis.com/tokeninfo?id_token={token}')
+            user_data = google_res.json()
+            
+            if google_res.status_code == 200:
+                email = user_data.get('email')
+                
+                # Cari user atau buat baru
+                user, created = User.objects.get_or_create(
+                    username=email, 
+                    defaults={'email': email, 'first_name': user_data.get('given_name', '')}
+                )
+                
+                # Login ke session
+                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+                
+                return JsonResponse({
+                    'ok': True, 
+                    'redirect': reverse('dashboard')
+                })
+            else:
+                return JsonResponse({'ok': False, 'message': 'Token Google tidak valid'}, status=400)
+                
         except Exception as e:
-            print("Login error:", e)
-    return redirect('home')
+            return JsonResponse({'ok': False, 'message': str(e)}, status=500)
+            
+    return JsonResponse({'ok': False, 'message': 'Method not allowed'}, status=405)

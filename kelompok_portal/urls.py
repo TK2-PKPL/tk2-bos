@@ -12,11 +12,13 @@ urlpatterns = [
     path("dashboard/", dashboard, name="dashboard"),
     path("settings/theme/", theme_settings, name="theme_settings"),
     path("settings/theme/reset/", reset_theme, name="reset_theme"),
-    path("auth/google/", google_login, name="google_login"),
+    
+\
+    path("auth/google/", google_login, name="google_login"), 
+    
     path("auth/logout/", logout_view, name="logout"),
     path("debug-login/<str:role>/", debug_login, name="debug_login"),
-    path('login/', include('social_django.urls', namespace='social')),
-    path('google-login/', views.google_login, name='google_login'),
+    path('social-auth/', include('social_django.urls', namespace='social')),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
