@@ -1,11 +1,235 @@
 {% extends 'base.html' %}
 {% block title %}Beranda | {{ site_name }}{% endblock %}
-{% block extra_head %}{% if google_client_id %}<script src="https://accounts.google.com/gsi/client" async defer></script>{% endif %}{% endblock %}
-{% block content %}
-<section class="hero-section"><div class="container hero-grid"><div class="hero-copy"><span class="eyebrow">Tugas 2 Kelompok</span><h1>Portal biodata kelompok yang menampilkan implementasi autentikasi dan otorisasi secara nyata</h1><p>{{ project_context }}</p><div class="hero-actions"><a class="btn btn-primary" href="#login">Mulai login</a><a class="btn btn-soft" href="#anggota">Lihat anggota</a></div><div class="mini-stats"><div class="stat-card"><strong>Public first</strong><span>Halaman biodata dapat dibuka tanpa login</span></div><div class="stat-card"><strong>Google based</strong><span>Identitas diverifikasi melalui token Google</span></div><div class="stat-card"><strong>Editor only</strong><span>Perubahan tema dibatasi untuk email anggota kelompok</span></div></div></div><div class="hero-panel"><div class="glass-card hero-preview"><div class="browser-top"><span></span><span></span><span></span></div><div class="preview-body"><div class="preview-badge">Secure design</div><h2>{{ site_name }}</h2><p>{{ site_tagline }}</p><div class="theme-strip"><span style="background: var(--primary);"></span><span style="background: var(--secondary);"></span><span style="background: var(--accent);"></span></div><div class="preview-grid"><article><strong>Authentication</strong><p>Google login dan sesi Django</p></article><article><strong>Authorization</strong><p>Role editor dan viewer di sisi server</p></article></div></div></div></div></div></section>
-<section id="fitur" class="section-block"><div class="container"><div class="section-head"><span class="eyebrow">Sorotan utama</span><h2>Komponen penting pada website</h2><p>Struktur website dibuat sederhana agar fokus tugas tetap berada pada keamanan autentikasi dan otorisasi.</p></div><div class="feature-grid">{% for feature in feature_cards %}<article class="feature-card"><h3>{{ feature.title }}</h3><p>{{ feature.description }}</p></article>{% endfor %}</div></div></section>
-<section id="anggota" class="section-block section-soft"><div class="container"><div class="section-head"><span class="eyebrow">Profil tim</span><h2>Anggota kelompok</h2><p>Data dapat diganti langsung pada file <code>core/team_data.py</code> agar sesuai dengan identitas kelompok asli.</p></div><div class="member-grid">{% for member in team_members %}<article class="member-card"><div class="member-avatar">{{ member.name|first }}</div><div class="member-body"><h3>{{ member.name }}</h3><p class="meta-line">{{ member.student_id }}</p><p class="role-pill">{{ member.role }}</p><p>{{ member.bio }}</p><div class="member-tags"><span>{{ member.email }}</span><span>{{ member.accent }}</span></div></div></article>{% endfor %}</div></div></section>
-<section id="keamanan" class="section-block"><div class="container security-layout"><div><div class="section-head left-aligned"><span class="eyebrow">Lanjutan dari Tugas 1</span><h2>Prinsip keamanan yang dibawa ke Tugas 2</h2></div><ul class="check-list">{% for point in task_one_highlights %}<li>{{ point }}</li>{% endfor %}</ul></div><div class="security-card"><h3>Aturan otorisasi</h3><ul class="rule-list">{% for rule in authorization_rules %}<li>{{ rule }}</li>{% endfor %}</ul></div></div></section>
-<section id="login" class="section-block section-soft"><div class="container login-layout"><div class="login-copy"><span class="eyebrow">Masuk ke sistem</span><h2>Login dilakukan dengan akun Google</h2><p>Jika email Anda termasuk dalam daftar anggota kelompok maka sistem memberi role editor. Akun lain tetap dapat masuk sebagai viewer.</p><div class="info-card"><strong>Catatan pengujian</strong><p>Google client ID dapat diisi pada file env. Setelah itu tombol login aktif penuh untuk proses autentikasi.</p></div></div><div class="login-panel glass-card">{% if google_client_id %}<div id="g_id_onload" data-client_id="{{ google_client_id }}" data-context="signin" data-ux_mode="popup" data-callback="handleCredentialResponse" data-auto_prompt="false"></div><div id="googleSignInButton" class="google-button-wrap"></div><p class="helper-text">Gunakan akun Google anggota kelompok untuk mencoba fitur editor.</p>{% else %}<div class="empty-state"><h3>Google client ID belum diisi</h3><p>Isi file env agar login Google aktif. Selama mode pengembangan Anda juga dapat memakai tombol preview di bawah untuk melihat alur editor dan viewer.</p>{% if debug_mode %}<div class="debug-actions"><button class="btn btn-primary" data-debug-login="editor">Masuk sebagai editor demo</button><button class="btn btn-soft" data-debug-login="viewer">Masuk sebagai viewer demo</button></div>{% endif %}</div>{% endif %}</div></div></section>
+
+{% block extra_head %}
+{% if google_client_id %}
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+{% endif %}
 {% endblock %}
-{% block extra_js %}<script>window.portalConfig={googleClientId:"{{ google_client_id|default:'' }}",googleAuthUrl:"{% url 'google_login' %}",debugEditorUrl:"{% url 'debug_login' 'editor' %}",debugViewerUrl:"{% url 'debug_login' 'viewer' %}"};</script>{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+  <div class="container hero-grid">
+    <div class="hero-copy">
+      <span class="eyebrow">Tugas 2 Kelompok</span>
+      <h1>Portal biodata kelompok yang menampilkan implementasi autentikasi dan otorisasi secara nyata</h1>
+      <p>{{ project_context }}</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#login">Mulai login</a>
+        <a class="btn btn-soft" href="#anggota">Lihat anggota</a>
+      </div>
+      <div class="mini-stats">
+        <div class="stat-card">
+          <strong>Public first</strong>
+          <span>Halaman biodata dapat dibuka tanpa login</span>
+        </div>
+        <div class="stat-card">
+          <strong>Google based</strong>
+          <span>Identitas diverifikasi melalui token Google</span>
+        </div>
+        <div class="stat-card">
+          <strong>Editor only</strong>
+          <span>Perubahan tema dibatasi untuk email anggota kelompok</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-panel">
+      <div class="glass-card hero-preview">
+        <div class="browser-top"><span></span><span></span><span></span></div>
+        <div class="preview-body">
+          <div class="preview-badge">Secure design</div>
+          <h2>{{ site_name }}</h2>
+          <p>{{ site_tagline }}</p>
+          <div class="theme-strip">
+            <span style="background: var(--primary);"></span>
+            <span style="background: var(--secondary);"></span>
+            <span style="background: var(--accent);"></span>
+          </div>
+          <div class="preview-grid">
+            <article>
+              <strong>Authentication</strong>
+              <p>Google login dan sesi Django</p>
+            </article>
+            <article>
+              <strong>Authorization</strong>
+              <p>Role editor dan viewer di sisi server</p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="fitur" class="section-block">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Sorotan utama</span>
+      <h2>Komponen penting pada website</h2>
+      <p>Struktur website dibuat sederhana agar fokus tugas tetap berada pada keamanan autentikasi dan otorisasi.</p>
+    </div>
+    <div class="feature-grid">
+      {% for feature in feature_cards %}
+      <article class="feature-card">
+        <h3>{{ feature.title }}</h3>
+        <p>{{ feature.description }}</p>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section id="anggota" class="section-block section-soft">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Profil tim</span>
+      <h2>Anggota kelompok</h2>
+      <p>Data dapat diganti langsung pada file <code>core/team_data.py</code> agar sesuai dengan identitas kelompok asli.</p>
+    </div>
+    <div class="member-grid">
+      {% for member in team_members %}
+      <article class="member-card">
+        <div class="member-avatar">{{ member.name|first }}</div>
+        <div class="member-body">
+          <h3>{{ member.name }}</h3>
+          <p class="meta-line">{{ member.student_id }}</p>
+          <p class="role-pill">{{ member.role }}</p>
+          <p>{{ member.bio }}</p>
+          <div class="member-tags">
+            <span>{{ member.email }}</span>
+            <span>{{ member.accent }}</span>
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section id="keamanan" class="section-block">
+  <div class="container security-layout">
+    <div>
+      <div class="section-head left-aligned">
+        <span class="eyebrow">Lanjutan dari Tugas 1</span>
+        <h2>Prinsip keamanan yang dibawa ke Tugas 2</h2>
+      </div>
+      <ul class="check-list">
+        {% for point in task_one_highlights %}
+        <li>{{ point }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="security-card">
+      <h3>Aturan otorisasi</h3>
+      <ul class="rule-list">
+        {% for rule in authorization_rules %}
+        <li>{{ rule }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="login" class="section-block section-soft">
+  <div class="container login-layout">
+    <div class="login-copy">
+      <span class="eyebrow">Masuk ke sistem</span>
+      <h2>Login dilakukan dengan akun Google</h2>
+      <p>Jika email Anda termasuk dalam daftar anggota kelompok maka sistem memberi role editor. Akun lain tetap dapat masuk sebagai viewer.</p>
+      <div class="info-card">
+        <strong>Catatan pengujian</strong>
+        <p>Google client ID dapat diisi pada file env. Setelah itu tombol login aktif penuh untuk proses autentikasi.</p>
+      </div>
+    </div>
+    <div class="login-panel glass-card">
+      {% if google_client_id %}
+      <div id="g_id_onload" data-client_id="{{ google_client_id }}" data-context="signin" data-ux_mode="popup" data-callback="handleCredentialResponse" data-auto_prompt="false"></div>
+      <div id="googleSignInButton" class="google-button-wrap"></div>
+      <p class="helper-text">Gunakan akun Google anggota kelompok untuk mencoba fitur editor.</p>
+      {% else %}
+      <div class="empty-state">
+        <h3>Google client ID belum diisi</h3>
+        <p>Isi file env agar login Google aktif. Selama mode pengembangan Anda juga dapat memakai tombol preview di bawah untuk melihat alur editor dan viewer.</p>
+        {% if debug_mode %}
+        <div class="debug-actions">
+          <button class="btn btn-primary" data-debug-login="editor">Masuk sebagai editor demo</button>
+          <button class="btn btn-soft" data-debug-login="viewer">Masuk sebagai viewer demo</button>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+window.portalConfig = {
+    googleClientId: "{{ google_client_id|default:'' }}",
+    googleAuthUrl: "{% url 'google_login' %}",
+    debugEditorUrl: "{% url 'debug_login' 'editor' %}",
+    debugViewerUrl: "{% url 'debug_login' 'viewer' %}"
+};
+
+// Ambil CSRF token dari cookie
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// callback Google One Tap / Button
+function handleCredentialResponse(response) {
+    console.log("Google token:", response.credential);
+
+    fetch(window.portalConfig.googleAuthUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ credential: response.credential })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.ok && data.redirect){
+            window.location.href = data.redirect;
+        } else {
+            alert(data.message || "Gagal login. Cek console.");
+        }
+    })
+    .catch(err => {
+        console.error("Login error:", err);
+        alert("Terjadi kesalahan saat login.");
+    });
+}
+
+// render tombol Google Sign In
+window.onload = function(){
+    if(window.google && document.getElementById("googleSignInButton")){
+        google.accounts.id.renderButton(
+            document.getElementById("googleSignInButton"),
+            { theme: "outline", size: "large" }
+        );
+    }
+
+    // tombol debug login (demo)
+    document.querySelectorAll("[data-debug-login]").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const role = btn.getAttribute("data-debug-login");
+            window.location.href = window.portalConfig[`debug${role.charAt(0).toUpperCase() + role.slice(1)}Url`];
+        });
+    });
+};
+</script>
+{% endblock %}

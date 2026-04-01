@@ -6,6 +6,10 @@ from .decorators import editor_required
 from .forms import ThemeForm
 from .models import AuditLog, ThemeSetting
 from .utils import get_client_ip
+from django.contrib.auth import login
+from django.contrib.auth.models import User
+from django.shortcuts import redirect
+from social_django.utils import psa 
 
 
 def home(request):
@@ -44,3 +48,20 @@ def reset_theme(request):
     theme.save()
     messages.info(request, "Tema website dikembalikan ke pengaturan awal.")
     return redirect("theme_settings")
+
+
+# Endpoint callback dari Google
+@psa('social:complete')
+def google_login(request):
+    # token dari front-end (Google One Tap / button)
+    token = request.POST.get('credential')
+    if token:
+        try:
+            # authenticate user dengan token
+            user = request.backend.do_auth(token)
+            if user:
+                login(request, user)
+                return redirect('dashboard')
+        except Exception as e:
+            print("Login error:", e)
+    return redirect('home')

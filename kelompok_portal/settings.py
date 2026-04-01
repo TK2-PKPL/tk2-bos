@@ -6,8 +6,24 @@ load_dotenv(BASE_DIR / ".env")
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-change-me")
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 ALLOWED_HOSTS = [host.strip() for host in os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",") if host.strip()]
-INSTALLED_APPS = ["django.contrib.admin", "django.contrib.auth", "django.contrib.contenttypes", "django.contrib.sessions", "django.contrib.messages", "django.contrib.staticfiles", "accounts", "core"]
-MIDDLEWARE = ["django.middleware.security.SecurityMiddleware", "django.contrib.sessions.middleware.SessionMiddleware", "django.middleware.common.CommonMiddleware", "django.middleware.csrf.CsrfViewMiddleware", "django.contrib.auth.middleware.AuthenticationMiddleware", "django.contrib.messages.middleware.MessageMiddleware", "django.middleware.clickjacking.XFrameOptionsMiddleware"]
+INSTALLED_APPS = ["django.contrib.admin", 
+                  "django.contrib.auth",
+                    "django.contrib.contenttypes", 
+                    "django.contrib.sessions", 
+                    "django.contrib.messages", 
+                    "django.contrib.staticfiles", 
+                    "django.contrib.sites",
+                    "social_django",
+                    "accounts", 
+                    "core"]
+MIDDLEWARE = ["django.middleware.security.SecurityMiddleware", 
+              "django.contrib.sessions.middleware.SessionMiddleware",
+                "django.middleware.common.CommonMiddleware", 
+                "django.middleware.csrf.CsrfViewMiddleware", 
+                "django.contrib.auth.middleware.AuthenticationMiddleware", 
+                "django.contrib.messages.middleware.MessageMiddleware", 
+                "django.middleware.clickjacking.XFrameOptionsMiddleware",
+                "social_django.middleware.SocialAuthExceptionMiddleware"]
 ROOT_URLCONF = "kelompok_portal.urls"
 TEMPLATES = [{"BACKEND": "django.template.backends.django.DjangoTemplates", "DIRS": [BASE_DIR / "templates"], "APP_DIRS": True, "OPTIONS": {"context_processors": ["django.template.context_processors.request", "django.contrib.auth.context_processors.auth", "django.contrib.messages.context_processors.messages", "core.context_processors.site_context"]}}]
 WSGI_APPLICATION = "kelompok_portal.wsgi.application"
@@ -33,3 +49,15 @@ SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
+SITE_ID = 1
+
+# ==================================================
+# Google OAuth2 settings
+# ==================================================
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get("GOOGLE_CLIENT_ID")
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
+
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'dashboard'
+LOGOUT_REDIRECT_URL = 'login'

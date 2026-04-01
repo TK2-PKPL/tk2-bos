@@ -2,8 +2,10 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
+from accounts import views
 from accounts.views import google_login, logout_view, debug_login
 from core.views import home, dashboard, theme_settings, reset_theme
+from django.urls import path, include
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", home, name="home"),
@@ -13,6 +15,8 @@ urlpatterns = [
     path("auth/google/", google_login, name="google_login"),
     path("auth/logout/", logout_view, name="logout"),
     path("debug-login/<str:role>/", debug_login, name="debug_login"),
+    path('login/', include('social_django.urls', namespace='social')),
+    path('google-login/', views.google_login, name='google_login'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
