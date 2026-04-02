@@ -18,6 +18,7 @@
         <a class="btn btn-primary" href="#login">Mulai login</a>
         <a class="btn btn-soft" href="#anggota">Lihat anggota</a>
       </div>
+
       <div class="mini-stats">
         <div class="stat-card">
           <strong>Public first</strong>
@@ -33,6 +34,7 @@
         </div>
       </div>
     </div>
+
     <div class="hero-panel">
       <div class="glass-card hero-preview">
         <div class="browser-top"><span></span><span></span><span></span></div>
@@ -86,6 +88,7 @@
       <h2>Anggota kelompok</h2>
       <p>Data dapat diganti langsung pada file <code>core/team_data.py</code> agar sesuai dengan identitas kelompok asli.</p>
     </div>
+
     <div class="member-grid">
       {% for member in team_members %}
       <article class="member-card">
@@ -119,6 +122,7 @@
         {% endfor %}
       </ul>
     </div>
+
     <div class="security-card">
       <h3>Aturan otorisasi</h3>
       <ul class="rule-list">
@@ -136,27 +140,58 @@
       <span class="eyebrow">Masuk ke sistem</span>
       <h2>Login dilakukan dengan akun Google</h2>
       <p>Jika email Anda termasuk dalam daftar anggota kelompok maka sistem memberi role editor. Akun lain tetap dapat masuk sebagai viewer.</p>
+
       <div class="info-card">
         <strong>Catatan pengujian</strong>
-        <p>Google client ID dapat diisi pada file env. Setelah itu tombol login aktif penuh untuk proses autentikasi.</p>
+        <p>
+          Gunakan <strong>OAuth Client ID tipe Web application</strong> dan buka website dari
+          <strong>http://localhost:8000</strong>.
+        </p>
       </div>
     </div>
+
     <div class="login-panel glass-card">
+      <p style="font-size:12px; color:#666; margin-bottom:12px;">
+        Debug client id: {{ google_client_id|default:"KOSONG" }}
+      </p>
+
       {% if google_client_id %}
-      <div id="g_id_onload" data-client_id="{{ google_client_id }}" data-context="signin" data-ux_mode="popup" data-callback="handleCredentialResponse" data-auto_prompt="false"></div>
-      <div id="googleSignInButton" class="google-button-wrap"></div>
-      <p class="helper-text">Gunakan akun Google anggota kelompok untuk mencoba fitur editor.</p>
-      {% else %}
-      <div class="empty-state">
-        <h3>Google client ID belum diisi</h3>
-        <p>Isi file env agar login Google aktif. Selama mode pengembangan Anda juga dapat memakai tombol preview di bawah untuk melihat alur editor dan viewer.</p>
-        {% if debug_mode %}
-        <div class="debug-actions">
-          <button class="btn btn-primary" data-debug-login="editor">Masuk sebagai editor demo</button>
-          <button class="btn btn-soft" data-debug-login="viewer">Masuk sebagai viewer demo</button>
+        <div
+          id="g_id_onload"
+          data-client_id="{{ google_client_id }}"
+          data-context="signin"
+          data-ux_mode="redirect"
+          data-login_uri="{{ request.scheme }}://{{ request.get_host }}{% url 'google_login' %}"
+          data-auto_prompt="false"
+          data-itp_support="true">
         </div>
-        {% endif %}
-      </div>
+
+        <div
+          id="google-signin-button"
+          class="g_id_signin"
+          data-type="standard"
+          data-theme="outline"
+          data-size="large"
+          data-text="signin_with"
+          data-shape="pill"
+          data-logo_alignment="left"
+          data-width="320">
+        </div>
+
+        <p class="helper-text">Gunakan akun Google anggota kelompok untuk mencoba fitur editor.</p>
+        <p id="google-debug-status" class="helper-text" style="margin-top: 8px;"></p>
+      {% else %}
+        <div class="empty-state">
+          <h3>Google client ID belum diisi</h3>
+          <p>Isi file <code>.env</code> agar login Google aktif. Selama pengembangan, kamu masih bisa tes role editor dan viewer dengan tombol debug di bawah.</p>
+
+          {% if debug_mode %}
+          <div class="debug-actions">
+            <button class="btn btn-primary" type="button" data-debug-login="editor">Masuk sebagai editor demo</button>
+            <button class="btn btn-soft" type="button" data-debug-login="viewer">Masuk sebagai viewer demo</button>
+          </div>
+          {% endif %}
+        </div>
       {% endif %}
     </div>
   </div>
@@ -166,70 +201,25 @@
 {% block extra_js %}
 <script>
 window.portalConfig = {
-    googleClientId: "{{ google_client_id|default:'' }}",
     googleAuthUrl: "{% url 'google_login' %}",
     debugEditorUrl: "{% url 'debug_login' 'editor' %}",
     debugViewerUrl: "{% url 'debug_login' 'viewer' %}"
 };
 
-// Ambil CSRF token dari cookie
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
+window.addEventListener("load", function () {
+    const debug = document.getElementById("google-debug-status");
+    if (!debug) return;
 
-// callback Google One Tap / Button
-function handleCredentialResponse(response) {
-    console.log("Google token:", response.credential);
-
-    fetch(window.portalConfig.googleAuthUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
-        },
-        body: JSON.stringify({ credential: response.credential })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if(data.ok && data.redirect){
-            window.location.href = data.redirect;
-        } else {
-            alert(data.message || "Gagal login. Cek console.");
-        }
-    })
-    .catch(err => {
-        console.error("Login error:", err);
-        alert("Terjadi kesalahan saat login.");
-    });
-}
-
-// render tombol Google Sign In
-window.onload = function(){
-    if(window.google && document.getElementById("googleSignInButton")){
-        google.accounts.id.renderButton(
-            document.getElementById("googleSignInButton"),
-            { theme: "outline", size: "large" }
-        );
+    if (!window.location.origin.includes("localhost")) {
+        debug.textContent = "Kamu sedang membuka halaman bukan dari localhost. Pakai http://localhost:8000.";
+        return;
     }
 
-    // tombol debug login (demo)
-    document.querySelectorAll("[data-debug-login]").forEach(btn => {
-        btn.addEventListener("click", () => {
-            const role = btn.getAttribute("data-debug-login");
-            window.location.href = window.portalConfig[`debug${role.charAt(0).toUpperCase() + role.slice(1)}Url`];
-        });
-    });
-};
+    if (window.google && window.google.accounts && window.google.accounts.id) {
+        debug.textContent = "Google Sign-In script berhasil dimuat.";
+    } else {
+        debug.textContent = "Google Sign-In script belum termuat.";
+    }
+});
 </script>
 {% endblock %}

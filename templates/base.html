@@ -7,34 +7,96 @@
 <title>{% block title %}{{ site_name }}{% endblock %}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&family=Lora:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&family=Lora:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 <style>
 :root {
---primary: {{ palette_tokens.primary }};
---secondary: {{ palette_tokens.secondary }};
---accent: {{ palette_tokens.accent }};
---surface: {{ palette_tokens.surface }};
---surface-soft: {{ palette_tokens.surface_soft }};
---text: {{ palette_tokens.text }};
---muted: {{ palette_tokens.muted }};
---ring: {{ palette_tokens.ring }};
---font-main: {{ font_css_stack|safe }};
+  --primary: {{ palette_tokens.primary }};
+  --secondary: {{ palette_tokens.secondary }};
+  --accent: {{ palette_tokens.accent }};
+  --surface: {{ palette_tokens.surface }};
+  --surface-soft: {{ palette_tokens.surface_soft }};
+  --text: {{ palette_tokens.text }};
+  --muted: {{ palette_tokens.muted }};
+  --ring: {{ palette_tokens.ring }};
+  --font-main: {{ font_css_stack|safe }};
 }
 </style>
 {% block extra_head %}{% endblock %}
 </head>
 <body>
 <header class="site-header">
-<div class="container header-inner">
-<a class="brand" href="{% url 'home' %}"><span class="brand-mark">KP</span><span><strong>{{ site_name }}</strong><small>Authentication and Authorization</small></span></a>
-<nav class="main-nav"><a href="{% url 'home' %}#anggota">Anggota</a><a href="{% url 'home' %}#fitur">Fitur</a><a href="{% url 'home' %}#keamanan">Keamanan</a>{% if request.user.is_authenticated %}<a href="{% url 'dashboard' %}">Dashboard</a>{% else %}<a href="{% url 'home' %}#login">Login</a>{% endif %}</nav>
-<div class="header-actions">{% if request.user.is_authenticated %}<div class="user-chip"><span>{{ request.user.display_name|default:request.user.username }}</span><small>{{ request.user.role|title }}</small></div><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="btn btn-soft" type="submit">Keluar</button></form>{% else %}<a class="btn btn-primary" href="#login">Masuk</a>{% endif %}</div>
-</div>
+  <div class="container header-inner">
+    <a class="brand" href="{% url 'home' %}">
+      <span class="brand-mark">KP</span>
+      <span>
+        <strong>{{ site_name }}</strong>
+        <small>Authentication and Authorization</small>
+      </span>
+    </a>
+
+    <nav class="main-nav">
+      <a href="{% url 'home' %}#anggota">Anggota</a>
+      <a href="{% url 'home' %}#fitur">Fitur</a>
+      <a href="{% url 'home' %}#keamanan">Keamanan</a>
+      {% if request.user.is_authenticated %}
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+      {% else %}
+        <a href="{% url 'home' %}#login">Login</a>
+      {% endif %}
+    </nav>
+
+    <div class="header-actions">
+      {% if request.user.is_authenticated %}
+        <div class="user-chip">
+          <span>{{ request.user.display_name|default:request.user.username }}</span>
+          <small>{{ request.user.role|title }}</small>
+        </div>
+
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button class="btn btn-soft" type="submit">Keluar</button>
+        </form>
+      {% else %}
+        <a class="btn btn-primary" href="{% url 'home' %}#login">Masuk</a>
+      {% endif %}
+    </div>
+  </div>
 </header>
-{% if messages %}<div class="container flash-stack">{% for message in messages %}<div class="flash flash-{{ message.tags|default:'info' }}">{{ message }}</div>{% endfor %}</div>{% endif %}
-<main>{% block content %}{% endblock %}</main>
-<footer class="site-footer"><div class="container footer-grid"><div><h3>{{ site_name }}</h3><p>{{ site_tagline }}</p></div><div><h4>Fokus tugas</h4><ul><li>Autentikasi Google</li><li>Otorisasi editor dan viewer</li><li>Audit log perubahan tampilan</li></ul></div><div><h4>Tema aktif</h4><p>{{ palette_tokens.name }} dan {{ active_theme.font_family }}</p></div></div></footer>
+
+{% if messages %}
+<div class="container flash-stack">
+  {% for message in messages %}
+  <div class="flash flash-{{ message.tags|default:'info' }}">{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<main>
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <h3>{{ site_name }}</h3>
+      <p>{{ site_tagline }}</p>
+    </div>
+    <div>
+      <h4>Fokus tugas</h4>
+      <ul>
+        <li>Autentikasi Google</li>
+        <li>Otorisasi editor dan viewer</li>
+        <li>Audit log perubahan tampilan</li>
+      </ul>
+    </div>
+    <div>
+      <h4>Tema aktif</h4>
+      <p>{{ palette_tokens.name }} dan {{ active_theme.font_family }}</p>
+    </div>
+  </div>
+</footer>
+
 <script src="{% static 'js/app.js' %}"></script>
 {% block extra_js %}{% endblock %}
 </body>
